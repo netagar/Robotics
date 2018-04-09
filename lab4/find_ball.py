@@ -26,7 +26,7 @@ def find_ball(opencv_image, debug=False):
 	ball = None
 	
 	## TODO: INSERT YOUR SOLUTION HERE
-	circles = cv2.HoughCircles(newimage,cv2.HOUGH_GRADIENT,1.2,70,param1=50,param2=25,minRadius=10,maxRadius=50)
+	circles = cv2.HoughCircles(newimage,cv2.HOUGH_GRADIENT,1.2,70,param1=140,param2=30,minRadius=10,maxRadius=100)
 	
 	if circles is not None:
 		circles = np.round(circles[0, :]).astype("int")
@@ -72,7 +72,7 @@ def display_circles(opencv_image, circles, best=None):
 		cv2.circle(circle_image,(c[0],c[1]),2,(0,255,255),3) 
 		# write coords
 		cv2.putText(circle_image,str(c),(c[0],c[1]),cv2.FONT_HERSHEY_SIMPLEX,	
-					.5,(255,255,255),2,cv2.LINE_AA)            
+					.5,(0,0,0),2,cv2.LINE_AA)            
 	
 	#highlight the best circle in a different color
 	if best is not None:
