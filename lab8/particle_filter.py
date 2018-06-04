@@ -56,45 +56,33 @@ def measurement_update(particles, measured_marker_list, grid):
     """
    
     weights = []
-    
+    cum_prob = 0
     for particle in particles:
         particle_markers_list = particle.read_markers(grid)
         prob = sum([marker_probability(measured, observed)
                     for measured in particle_markers_list
                     for observed in measured_marker_list])
-        weights.append(prob)
+        cum_prob += prob
+        weights.append(cum_prob)
 
-    weigt_sum = sum(weights)
-    if weigt_sum > 0:
-        weights /= sum(weights)
+    resample = int(len(particles) * 0.95)
+    new_sample = len(particles) - int(len(particles) * 0.95)
 
-    
-    indexes = systematic_resample(weights)
+    if cum_prob == 0:
+        sampled = random.choices(particles, k=resample)
+    else:
+        sampled = random.choices(particles, cum_weights=weights, k=resample)
 
-    # resample according to indexes
-    measured_particles = []
-    for index in indexes:
-        measured_particles.append(particles[index])
-    return measured_particles
+    sampled.extend(Particle.create_random(new_sample, grid))
+    return sampled
+
+def pdf(mean, sigma, x):
+    return math.exp(-(x - mean) ** 2 / (2 * sigma ** 2)) / math.sqrt(2 * math.pi * sigma ** 2)
+
 
 def marker_probability(measurd, observed):
     (dx, dy, dh) = (measurd[0] - observed[0], measurd[1] - observed[1], measurd[2] - observed[2])
-    return scipy.stats.norm(0, MARKER_TRANS_SIGMA).pdf(dx) * scipy.stats.norm(0, MARKER_TRANS_SIGMA).pdf(dy) * scipy.stats.norm(0, MARKER_ROT_SIGMA).pdf(dh)
+    return pdf(0, MARKER_TRANS_SIGMA, dx) * pdf(0, MARKER_TRANS_SIGMA, dy) * pdf(0, MARKER_ROT_SIGMA, dh)
 
-def systematic_resample(weights):
-    N = len(weights)
-
-    positions = (np.arange(N) + random.random()) / N
-
-    indexes = np.zeros(N, 'i')
-    cumulative_sum = np.cumsum(weights)
-    i, j = 0, 0
-    while i < N & j < N:
-        if positions[i] < cumulative_sum[j]:
-            indexes[i] = j
-            i += 1
-        else:
-            j += 1
-    return indexes
 
 
